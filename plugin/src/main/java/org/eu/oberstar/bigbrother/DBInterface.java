@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 class User {
     int id;
@@ -15,6 +16,16 @@ class User {
     public String toString() {
         return username + "[" + id + ", " + (confirmed ? 't' : 'f') + "]: " + name + " " + surname + ", " + email;
     }
+}
+
+class Pos {
+    boolean valid = true;
+    float x, y, z;
+    String username;
+}
+
+class HomeLocations {
+    LinkedList<Pos> homes = new LinkedList<>();
 }
 
 public class DBInterface {
@@ -113,11 +124,13 @@ public class DBInterface {
             PreparedStatement closePs = get().prepareStatement(closeSQL);
             closePs.setInt(1, userId);
             closePs.executeUpdate();
+            closePs.close();
 
             String insertSQL = "INSERT INTO log_session (user_id) VALUES (?)";
             PreparedStatement insertPs = get().prepareStatement(insertSQL);
             insertPs.setInt(1, userId);
             insertPs.executeUpdate();
+            insertPs.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -130,9 +143,117 @@ public class DBInterface {
             closePs.setString(1, reason);
             closePs.setInt(2, userId);
             closePs.executeUpdate();
+            closePs.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static void setHome(String username, float x, float y, float z) {
+        int userId = getUserId(username);
+
+        try {
+            String insertSQL = "INSERT INTO home_locations (user_id, x, y, z) VALUES (?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE SET x = ?, y = ?, z = ?";
+            PreparedStatement ps = get().prepareStatement(insertSQL);
+            ps.setInt(1, userId);
+            ps.setFloat(2, x);
+            ps.setFloat(3, y);
+            ps.setFloat(4, z);
+            ps.setFloat(5, x);
+            ps.setFloat(6, y);
+            ps.setFloat(7, z);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static Pos getHome(String username) {
+        int userId = getUserId(username);
+
+        try {
+            String insertSQL = "SELECT x, y, z FROM home_locations WHERE user_id = ?";
+            PreparedStatement ps = get().prepareStatement(insertSQL);
+            ps.setInt(1, userId);
+            
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()) {
+                Pos pos = new Pos();
+                pos.x = rs.getFloat("x");
+                pos.y = rs.getFloat("y");
+                pos.z = rs.getFloat("z");
+
+                ps.close();
+                return pos;
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return null;
+    }
+
+    public static Pos listHome(String username) {
+        int userId = getUserId(username);
+
+        try {
+            String homeSql = "SELECT x, y, z FROM home_locations WHERE user_id = ?";
+            PreparedStatement ps = get().prepareStatement(homeSql);
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()) {
+                Pos pos = new Pos();
+                pos.x = rs.getFloat("x");
+                pos.y = rs.getFloat("y");
+                pos.z = rs.getFloat("z");
+                pos.username = username;
+
+                ps.close();
+                return pos;
+            }
+            else {
+                Pos p = new Pos();
+                p.valid = false;
+                p.username = "User does not have a home set!";
+                return p;
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        Pos p = new Pos();
+        p.valid = false;
+        p.username = "User does not exist";
+        return p;
+    }
+
+    public static HomeLocations listHomes() {
+        String homeSql = "SELECT username, x, y, z FROM users LEFT JOIN home_locations ON users.id = home_locations.user_id";
+        try {
+            PreparedStatement ps = get().prepareStatement(homeSql);
+            HomeLocations homes = new HomeLocations();
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()) {
+                Pos pos = new Pos();
+                pos.x = rs.getFloat("x");
+                pos.y = rs.getFloat("y");
+                pos.z = rs.getFloat("z");
+                pos.username = rs.getString("username");
+                homes.homes.add(pos);
+            }
+
+            ps.close();
+            return homes;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return null;
     }
 
 }

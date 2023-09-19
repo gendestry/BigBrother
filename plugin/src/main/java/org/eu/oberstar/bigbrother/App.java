@@ -13,6 +13,9 @@ public class App extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+        getCommand("sethome").setExecutor(new CommandSetHome());
+        getCommand("home").setExecutor(new CommandHome());
+        getCommand("listhomes").setExecutor(new CommandListHomes());
     }
 
     @Override
@@ -50,5 +53,5 @@ public class App extends JavaPlugin implements Listener {
 
         DBInterface.concludeSession(user.id, event.getQuitMessage());
     }
-    
+
 }

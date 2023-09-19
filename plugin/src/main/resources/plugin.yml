@@ -1,3 +1,17 @@
 main: org.eu.oberstar.bigbrother.App
 name: BigBrother
 version: 0.1
+
+commands:
+  sethome:
+    description: Sets your home location.
+    usage: /<command>
+    # permission: bigbrother.sethome
+  home:
+    description: Teleports you to your home location.
+    usage: /<command>
+    # permission: bigbrother.home
+  listhomes:
+    description: Lists all homes.
+    usage: /<command>
+    # permission: bigbrother.listhomes
