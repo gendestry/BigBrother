@@ -41,8 +41,3 @@ CREATE TABLE log_command (
     command TEXT NOT NULL,
     FOREIGN KEY (session_id) REFERENCES log_session(id)
 );
-
-
--- populate
-INSERT INTO users (username, email, name, surname, description, registered_at, confirmed) 
-VALUES ('Genergy', 'zan.oberstar@gmail.com', 'Žan', 'Oberstar', '', NOW(), TRUE);
