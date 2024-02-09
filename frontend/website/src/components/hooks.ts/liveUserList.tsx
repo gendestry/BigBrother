@@ -27,7 +27,6 @@ export const useLiveUserList = () => {
             schema: "public",
         },
         (payload) => {
-            console.log("here");
             if(payload.errors) {
                 setError(new Error(payload.errors[0]));
                 setUsers([]);
@@ -39,11 +38,12 @@ export const useLiveUserList = () => {
                     usersBuffer[i] = payload.new;
                 }
             }
+
             setUsers([...usersBuffer]);
         }).on<Tables<"users">>(
             "postgres_changes",
         {
-            event: "UPDATE",
+            event: "DELETE",
             schema: "public",
         },
         (payload) => {
@@ -53,8 +53,8 @@ export const useLiveUserList = () => {
                 return;
             }
             
-            setUsers(usersBuffer.filter((value) => value.id != payload.new.id));
-        });
+            setUsers(usersBuffer.filter((value) => value.id != payload.old.id));
+        }).subscribe();
 
     useEffect(() => {
         setLoading(true);
