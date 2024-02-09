@@ -1,13 +1,17 @@
 import { useMemo } from "react";
 import { useLiveUserList } from "../../../components/hooks.ts/liveUserList";
-import { Badge, Button, Group, LoadingOverlay, Table } from "@mantine/core";
+import { ActionIcon, Badge, Button, Group, LoadingOverlay, Modal, Table, Title } from "@mantine/core";
 import { IconCheck, IconTrash } from "@tabler/icons-react";
 import { supabaseClient } from "../../../supabase/supabaseClient";
 import { notifications } from "@mantine/notifications";
+import { useDisclosure } from "@mantine/hooks";
 
 
 function UserList() {
     const { users, loading, error, updateUsers } = useLiveUserList();
+    // const [openedModal, { openModal, closeModal }] = useDisclosure(false);
+
+    
 
     const toggleCheck = (id: number, username: string) => {
         supabaseClient.from("users")
@@ -28,6 +32,21 @@ function UserList() {
             });
     };
 
+    const deleteUser = (id: number, username: string ) => {
+        supabaseClient.from("users")
+            .delete()
+            .eq("id", id)
+            .then((res) => {
+                if(res.error) {
+                    notifications.show({ title: "Deletion error", message: res.error.message, color: "red" });
+                }
+                else {
+                    updateUsers();
+                    notifications.show({ title: "User deleted!", color: "green", message: `User ${username} deleted successfully` });
+                }
+            });
+    }
+
     const getUserRows = useMemo(() => {
         return users.sort((a, b) => a.id - b.id).map((user) => (
             <Table.Tr key={user.id}>
@@ -40,7 +59,7 @@ function UserList() {
                 <Table.Td>
                     <Group justify="right">
                         <Button color="blue" variant="light" size="xs" radius="sm" onClick={() => {toggleCheck(user.id, user.username)}}><IconCheck/></Button>
-                        <Button color="red" variant="light" size="xs" radius="sm"><IconTrash /></Button>
+                        <Button color="red" variant="light" size="xs" radius="sm" onClick={() => {deleteUser(user.id, user.username)}}><IconTrash /></Button>
                     </Group>
                 </Table.Td>
             </Table.Tr>
@@ -51,6 +70,10 @@ function UserList() {
     return (
         <>
             <LoadingOverlay visible={loading} />
+            {/* <Modal opened={opened} onClose={close} withCloseButton={false}>
+                Modal without header, press escape or click on overlay to close
+            </Modal>
+            <Button onClick={open}>Open modal</Button> */}
             <Table.ScrollContainer minWidth={800}>
                 <Table stickyHeader>
                     <Table.Thead>

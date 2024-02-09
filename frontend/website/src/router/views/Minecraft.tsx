@@ -1,9 +1,9 @@
-import { Button, Container, Group, LoadingOverlay, SimpleGrid, Stack, Text, TextInput } from "@mantine/core";
+import { Alert, Button, Container, Group, LoadingOverlay, SimpleGrid, Stack, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
-import { Database, Tables } from "../../supabase/supabase";
 import { supabaseClient } from "../../supabase/supabaseClient";
 import { notifications } from "@mantine/notifications";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 
 function Minecraft() {
@@ -45,13 +45,14 @@ function Minecraft() {
         <Container w="70%">
             <Stack>
                 <LoadingOverlay visible={loading} />
-                <Text ta="center" fw={700} size="xl">Minecraft login form</Text>
+                <Title ta="center" order={2}>Minecraft login form</Title>
                 <Text ta="center">To register on the server please fill in the following form. 
                     Once submitted I will confirm you (if I know who you are) making it possible for you to join on the server. 
                     If I have any other questions, I will use the specified email address to contact you. 
-                    Please use real information. 
-                    Fake submissions will be deleted!
                 </Text>
+                <Alert withCloseButton variant="light" color="red" title="Fake submissions" icon={<IconInfoCircle />}>
+                    Please use real information. Fake submissions will be deleted and the IP address will be banned from the server.
+                </Alert>
                 <form onSubmit={form.onSubmit(submitUser)}>
                     <TextInput withAsterisk label="Username" placeholder="Username" {...form.getInputProps("username")} />
                     <SimpleGrid cols={2}>
