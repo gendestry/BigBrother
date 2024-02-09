@@ -6,6 +6,7 @@ import { router } from '../router/router';
 
 const links = [
   { link: '/minecraft', label: 'Minecraft' },
+  { link: '/listusers', label: 'Minecraft Users' },
   { link: '/contact', label: 'Contact' },
   { link: '/github', label: 'GitHub' },
 ];

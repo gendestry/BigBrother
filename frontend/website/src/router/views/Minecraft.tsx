@@ -1,9 +1,14 @@
 import { Button, Container, Group, LoadingOverlay, SimpleGrid, Stack, Text, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
+import { Database, Tables } from "../../supabase/supabase";
+import { supabaseClient } from "../../supabase/supabaseClient";
+import { notifications } from "@mantine/notifications";
 
 
 function Minecraft() {
+    const [ loading, setLoading ] = useState(false);
+
     const form = useForm({
         initialValues: {
             username: "",
@@ -20,7 +25,21 @@ function Minecraft() {
         }
     });
 
-    const [ loading, setLoading ] = useState(false);
+
+    function submitUser({ username, name, surname, email, description }: { username: string, name: string, surname: string, email: string, description: string }) {
+        setLoading(true);
+        supabaseClient.from("users")
+            .insert({ username, name, surname, email, description })
+            .then((response) => {
+                if(response.error) {
+                    notifications.show({ title: "Error adding user", message: response.error.message, color: "red" });
+                }
+                else {
+                    notifications.show({ title: "User added", message: "User added successfully", color: "green" });
+                }
+                setLoading(false);
+            });
+    }
 
     return (
         <Container w="70%">
@@ -33,7 +52,7 @@ function Minecraft() {
                     Please use real information. 
                     Fake submissions will be deleted!
                 </Text>
-                <form onSubmit={form.onSubmit((values) => console.log(values))}>
+                <form onSubmit={form.onSubmit(submitUser)}>
                     <TextInput withAsterisk label="Username" placeholder="Username" {...form.getInputProps("username")} />
                     <SimpleGrid cols={2}>
                         <TextInput withAsterisk label="Name" placeholder="Name" {...form.getInputProps("name")} />
