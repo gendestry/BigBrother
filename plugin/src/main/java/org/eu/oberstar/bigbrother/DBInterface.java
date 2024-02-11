@@ -41,7 +41,6 @@ public class DBInterface {
                 Class.forName("org.postgresql.Driver");
                 conn = DriverManager.getConnection(url);
                 // conn = DriverManager.getConnection(url, user, password);
-                System.out.println("Connected to the PostgreSQL server successfully.");
             } catch (SQLException e) {
                 System.out.println("get(): " + e.getMessage());
             } catch (ClassNotFoundException e) {
@@ -57,6 +56,11 @@ public class DBInterface {
             return;
         
         try {
+            String closeSQL = "UPDATE log_session SET leave_time = NOW(), leave_reason = ? WHERE leave_time IS NULL;";
+            PreparedStatement closePs = get().prepareStatement(closeSQL);
+            closePs.setString(1, "Server shutdown.");
+            closePs.executeUpdate();
+            closePs.close();
             conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -119,7 +123,7 @@ public class DBInterface {
         return user;
     }
 
-    public static void createSession(int userId) {
+    public static void createSession(int userId, String ip) {
         try {
             String closeSQL = "UPDATE log_session SET leave_time = NOW() WHERE user_id = ? AND leave_time IS NULL";
             PreparedStatement closePs = get().prepareStatement(closeSQL);
@@ -127,9 +131,10 @@ public class DBInterface {
             closePs.executeUpdate();
             closePs.close();
 
-            String insertSQL = "INSERT INTO log_session (user_id) VALUES (?)";
+            String insertSQL = "INSERT INTO log_session (user_id, ip) VALUES (?, ?)";
             PreparedStatement insertPs = get().prepareStatement(insertSQL);
             insertPs.setInt(1, userId);
+            insertPs.setString(2, ip);
             insertPs.executeUpdate();
             insertPs.close();
         } catch (SQLException e) {
@@ -143,10 +148,22 @@ public class DBInterface {
             PreparedStatement closePs = get().prepareStatement(closeSQL);
             closePs.setString(1, reason);
             closePs.setInt(2, userId);
-            // TODO: set ip address
             closePs.executeUpdate();
             closePs.close();
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void logCommand(int userId, String command) {
+        try {
+            String insertSQL = "INSERT INTO log_command (session_id, command) VALUES ((SELECT id FROM log_session WHERE user_id = ? AND leave_time IS NULL ORDER BY id DESC LIMIT 1), ?)";
+            PreparedStatement insertPs = get().prepareStatement(insertSQL);
+            insertPs.setInt(1, userId);
+            insertPs.setString(2, command);
+            insertPs.executeUpdate();
+            insertPs.close();
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
