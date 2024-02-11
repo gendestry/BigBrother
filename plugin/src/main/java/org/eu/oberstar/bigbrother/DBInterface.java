@@ -29,20 +29,21 @@ class HomeLocations {
 }
 
 public class DBInterface {
-    private static final String url = "jdbc:postgresql://localhost:5432/minecraft";
-    private static final String user = "postgres";
-    private static final String password = "example";
-
+    // private static final String url = "jdbc:postgresql://server:port/postgres";
+    // private static final String user = "postgres.userhash";
+    // private static final String password = "password";
+    private static final String url = "";
     private static Connection conn = null;
 
     public static Connection get() {
         if(conn == null) {
             try {
                 Class.forName("org.postgresql.Driver");
-                conn = DriverManager.getConnection(url, user, password);
+                conn = DriverManager.getConnection(url);
+                // conn = DriverManager.getConnection(url, user, password);
                 System.out.println("Connected to the PostgreSQL server successfully.");
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                System.out.println("get(): " + e.getMessage());
             } catch (ClassNotFoundException e) {
                 System.out.println("Class not found: " + e.getMessage());
             }
@@ -142,6 +143,7 @@ public class DBInterface {
             PreparedStatement closePs = get().prepareStatement(closeSQL);
             closePs.setString(1, reason);
             closePs.setInt(2, userId);
+            // TODO: set ip address
             closePs.executeUpdate();
             closePs.close();
         } catch (SQLException e) {
